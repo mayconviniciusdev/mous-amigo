@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Sistema de sorteio de amigo secreto.",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "dev": "nodemon",
     "build": "tsc",
