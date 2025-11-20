@@ -11,3 +11,16 @@ export const login: RequestHandler = (req, res) => {
   if(!auth.validatePassword(body.data.password)) {return res.status(403).json({error: 'Acesso negado'})};
   res.json({token: auth.createToken()})
 }
+
+export const validate: RequestHandler = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) return res.status(403).json({ error: 'Acesso negado' });
+
+  const parts = authHeader.split(' ');
+  const token = parts[1];
+  if (!token) return res.status(403).json({ error: 'Acesso negado' }); 
+
+  if(!auth.validateToken(token)) {return res.status(403).json({error: 'Acesso negado'})}
+
+  next();
+}
