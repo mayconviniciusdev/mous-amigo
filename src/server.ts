@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import https from 'https';
 import http from 'http';
+import fs from 'fs'
 
 import { requestIntercepter } from './utils/requestIntercepter.js';
 import siteRoutes from './routes/site.js'
@@ -25,11 +26,27 @@ const runServer = (port: number, server: http.Server) => {
 } 
 
 const regularServer = http.createServer(app);
-if (process.env.NODE_ENV === 'production') {
-  // TODO - CONFIG SSL
-  // TODO - RODAR SERVER NA 80 E NA 443
-}
-else {
-  const serverPort: number = process.env.PORT ? parseInt(process.env.PORT) : 9000;
-  runServer(serverPort, regularServer);
-}
+  let httpPort: number;
+  let httpsPort: number;
+
+  if (process.env.NODE_ENV !== 'production') {
+    httpPort = 80;
+    httpsPort = 443;
+  } 
+  
+  else {
+    httpPort = parseInt(process.env.PORT || "9000");
+    httpsPort = httpPort;
+
+    let secServer: https.Server | null = null;
+    try {
+      const options = {
+        key: fs.readFileSync(process.env.SSL_KEY as string),
+        cert: fs.readFileSync(process.env.SSL_CERT as string),
+      };
+      secServer = https.createServer(options, app);
+    } 
+    catch (err) {console.log("⚠ SSL não configurado, iniciando apenas HTTP");}
+    runServer(httpPort, regularServer);
+
+    if (secServer) {runServer(httpsPort, secServer);}}
