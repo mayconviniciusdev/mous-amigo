@@ -7,7 +7,10 @@ const prisma = new PrismaClient({ adapter });
 
 type GetAllFilters = {id_event: number; id_group?: number}
 export const getAll = async (filters: GetAllFilters) => {
-  try {return await prisma.eventPeople.findMany({where: filters})}
+  try {
+    const result = prisma.eventPeople.findMany({where: filters})
+    return result;
+  }
   catch(err) {return false}
 }
 

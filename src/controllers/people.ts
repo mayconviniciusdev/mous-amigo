@@ -3,6 +3,20 @@ import * as people from '../services/people.js';
 import z from "zod";
 import { decryptMatch } from "../utils/match.js";
 
+export const getPublicPeople: RequestHandler = async (req, res) => {
+  const { id_event } = req.params;
+
+  try {
+    const items = await people.getAll({ id_event: Number(id_event) });
+    return res.json({ people: items ?? [] });
+  } 
+  
+  catch (error) {
+    console.log(error);
+    return res.status(500).json({ error: 'Erro ao buscar participantes do evento!' });
+  }
+};
+
 export const getAll: RequestHandler = async (req, res) => {
   const {id_event, id_group} = req.params;
   const items = await people.getAll({id_event: parseInt(id_event!), id_group: parseInt(id_group!)});
@@ -88,23 +102,19 @@ export const searchPerson: RequestHandler = async (req, res) => {
   const query = searchPersonSchema.safeParse(req.query);
   if(!query.success) return res.json({error: 'Dados inválidos'})
 
-    console.log("query.data.cpf:", query.data.cpf);
   const personItem = await people.getOne({
     id_event: parseInt(id_event!),
     cpf: query.data.cpf
   });
 
-  console.log("personItem encontrado:", personItem);
   if(personItem && personItem.matched) {
-    console.log("matched value:", personItem.matched);
     const matchedId = decryptMatch(personItem.matched);
- console.log("matchedId:", matchedId);
+ 
     const personMatched = await people.getOne({
       id_event: parseInt(id_event!),
       id: matchedId
     })
 
-    console.log("personMatched encontrado:", personMatched);
     if(personMatched) {
       return res.json({
         person: {id: personItem.id, name: personItem.name},
